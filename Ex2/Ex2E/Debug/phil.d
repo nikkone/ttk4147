@@ -1,0 +1,1 @@
+phil.d: ../phil.c
