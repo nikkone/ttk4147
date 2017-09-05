@@ -1,0 +1,6 @@
+#include <pthread.h>
+#include <sys/times.h>
+
+void busy_wait_delay(int seconds);
+void *wait_sleep(void *arg);
+void *wait_busy(void *arg);

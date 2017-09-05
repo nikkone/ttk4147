@@ -1,0 +1,15 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include "functions.h"
+
+int main(int argc, char** argv){
+    pthread_t thread1,thread2;
+    int n1=0, n2=1;
+    pthread_create(&thread1,NULL,&wait_sleep,(void *) &n1);
+    pthread_create(&thread2,NULL,&wait_sleep,(void *) &n2);
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+    return 0;
+}
+
