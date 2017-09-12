@@ -46,29 +46,7 @@ void init()
 	setbuf(stdout, NULL);
 	setbuf(stdin,  NULL);
 #endif
-}
-
-/*********************************************************************
-User decelerations
-*********************************************************************/
-
-/*********************************************************************
-Interrupt routines
-*********************************************************************/
-__attribute__((__interrupt__)) 
-static void interrupt_J3(void) 
-{ 
-
-}
-
-/*********************************************************************
-Functions
-*********************************************************************/
-int main (void)
-{
-	int i;
-	// initialize
-	init();
+	// GPIO configuration
 	gpio_configure_pin(TEST_A, GPIO_DIR_INPUT);
 	gpio_configure_pin(RESPONSE_A, GPIO_DIR_OUTPUT);
 	gpio_set_pin_high(RESPONSE_A);
@@ -78,24 +56,69 @@ int main (void)
 	gpio_configure_pin(TEST_C, GPIO_DIR_INPUT);
 	gpio_configure_pin(RESPONSE_C, GPIO_DIR_OUTPUT);
 	gpio_set_pin_high(RESPONSE_C);
+	gpio_enable_pin_interrupt(TEST_A,GPIO_FALLING_EDGE);
+	gpio_enable_pin_interrupt(TEST_B,GPIO_FALLING_EDGE);
+	gpio_enable_pin_interrupt(TEST_C,GPIO_FALLING_EDGE);
+}
+
+/*********************************************************************
+User decelerations
+*********************************************************************/
+
+/*********************************************************************
+Interrupt routines
+*********************************************************************/
+
+//Big while globals
+volatile int bigWhileA = 0;
+volatile int bigWhileB = 0;
+volatile int bigWhileC = 0;
+__attribute__((__interrupt__)) 
+static void interrupt_J3(void) 
+{ 
+	if(gpio_get_pin_interrupt_flag(TEST_A)) {
+		bigWhileA = 1;
+		gpio_clear_pin_interrupt_flag(TEST_A);
+	} 
+	if(gpio_get_pin_interrupt_flag(TEST_B)) {
+		bigWhileB = 1;
+		gpio_clear_pin_interrupt_flag(TEST_B);
+	} 
+	if(gpio_get_pin_interrupt_flag(TEST_C)) {
+		bigWhileC = 1;
+		gpio_clear_pin_interrupt_flag(TEST_C);
+	}
+	
+}
+
+/*********************************************************************
+Functions
+*********************************************************************/
+int main (void)
+{
+	// initialize
+	init();
+
 	// start code from here
 	while(1)
 	{
-		if(!gpio_get_pin_value(TEST_A)) {
-			gpio_set_pin_low(RESPONSE_A);
-			busy_delay_us(5);
-			gpio_set_pin_high(RESPONSE_A);
-		}
-		if(!gpio_get_pin_value(TEST_B)) {
-			gpio_set_pin_low(RESPONSE_B);
-			busy_delay_us(5);
-			gpio_set_pin_high(RESPONSE_B);
-		}
-		if(!gpio_get_pin_value(TEST_C)) {
-			gpio_set_pin_low(RESPONSE_C);
-			busy_delay_us(5);
-			gpio_set_pin_high(RESPONSE_C);
-		}
-		//busy_delay_ms(500);
+	if(bigWhileA) {
+		gpio_set_pin_low(RESPONSE_A);
+		busy_delay_us(5);
+		gpio_set_pin_high(RESPONSE_A);
+		bigWhileA = 0;
+	}
+	if(bigWhileB) {
+		gpio_set_pin_low(RESPONSE_B);
+		busy_delay_us(5);
+		gpio_set_pin_high(RESPONSE_B);
+		bigWhileB = 0;
+	}
+	if(bigWhileC) {
+		gpio_set_pin_low(RESPONSE_C);
+		busy_delay_us(5);
+		gpio_set_pin_high(RESPONSE_C);
+		bigWhileC = 0;
+	}
 	}
 }
