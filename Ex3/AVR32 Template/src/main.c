@@ -104,19 +104,22 @@ int main (void)
 	{
 	if(bigWhileA) {
 		gpio_set_pin_low(RESPONSE_A);
-		busy_delay_us(5);
+		//busy_delay_us(5);
+		cpu_delay_us(5, BOARD_OSC0_HZ);
 		gpio_set_pin_high(RESPONSE_A);
 		bigWhileA = 0;
 	}
 	if(bigWhileB) {
 		gpio_set_pin_low(RESPONSE_B);
-		busy_delay_us(5);
+		//busy_delay_us(5);
+		cpu_delay_us(5, BOARD_OSC0_HZ);
 		gpio_set_pin_high(RESPONSE_B);
 		bigWhileB = 0;
 	}
 	if(bigWhileC) {
 		gpio_set_pin_low(RESPONSE_C);
-		busy_delay_us(5);
+		//busy_delay_us(5);
+		cpu_delay_us(5, BOARD_OSC0_HZ);
 		gpio_set_pin_high(RESPONSE_C);
 		bigWhileC = 0;
 	}
