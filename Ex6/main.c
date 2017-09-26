@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) {
 	for (i = 0; i < 3; i++) {
 		char name[10];
 		sprintf(name, "Task%i", i);
-		rt_task_create(&tasks[i], name, 0, 50, T_CPU(1) | T_JOINABLE);
+		rt_task_create(&tasks[i], name, 0, 99, T_JOINABLE);
 		rt_task_start(&tasks[i], test, (void *) &args[i]);
 	}
 	for (i = 0; i < 10; i++) {
@@ -62,15 +62,15 @@ int main(int argc, char * argv[]) {
 
 void test(void * arg) {
 	int channel = *((int *) (arg));
-	set_cpu(1);
-	rt_task_set_periodic(NULL, TM_NOW, 10000);
+	//set_cpu(1);
+	//rt_task_set_periodic(NULL, TM_NOW, 10000);
 	while (1) {
 		if (!io_read(channel)) {
 			io_write(channel, 0);
 			usleep(5);
 			io_write(channel, 1);
 		}
-		rt_task_wait_period(NULL);
+		//rt_task_wait_period(NULL);
 	}
 }
 
