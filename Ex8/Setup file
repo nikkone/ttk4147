@@ -1,0 +1,13 @@
+setenv hostname 'atngw100'
+setenv ethact 'macb0'
+setenv ethaddr '00:11:22:33:44:55'
+setenv serverip '192.168.0.1'
+setenv tftpserver '192.168.0.1'
+setenv bootcmd 'set bootfile uImage;dhcp;bootm'
+setenv bootargs 'root=/dev/nfs nfsroot=192.168.0.1:/export/nfs ip=dhcp console=ttyS0'
+
+
+
+
+
+
