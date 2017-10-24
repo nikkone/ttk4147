@@ -1,0 +1,5 @@
+For the communication between the signal-thread and the udp-thread we decided on a global variable "signaled" that is protected by the mutex "signal_m"
+
+When we kept the controller period (2000µs) and had a faster signal polling(<7000µs), the controller didn't keep its deadline, because the signal-thread interfers with the controller.
+
+After changing the signal polling to 7000µs it works.

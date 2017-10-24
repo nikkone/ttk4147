@@ -1,0 +1,5 @@
+We use 2 mutexes to protect the global variables y (the current value of the system) and the udp-connection
+
+For the period: The period should be larger than the worst case controller step time
+
+We request data in the PI Controller and only receive in the UDP thread for future proofing for Part 2

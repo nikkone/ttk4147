@@ -13,31 +13,40 @@ void *udp_listener(void * arg);
 void *pi_controller(void * arg);
 void *signal_responder(void * arg);
 
-pthread_mutex_t udp_m, y_m;
+pthread_mutex_t udp_m, y_m; // Mutexes for UDP sending, locally stored y value
 struct udp_conn con;
-double y = 0, u;
-int running = 1, first_value = 0;
+double y = 0, u; // u always set in the pid_controller before its used, no need to initialize
+int running = 1; /* Running is a flag for stopping the threads after a given time,
+signaled gets set by the udp_listener and responded to and reset in signal_responder*/
 
 int main(void) {
 	pthread_t udp_thread, pi_thread;
+
 	pthread_mutex_init(&udp_m, NULL);
 	pthread_mutex_init(&y_m, NULL);
+
 	struct timespec time;
 	udp_init_client(&con, 9999, "192.168.0.1");
+
 	pthread_create(&udp_thread, NULL, udp_listener, NULL);
 	pthread_create(&pi_thread, NULL, pi_controller, NULL);
+
 	udp_send(&con, "START", 6);
 	clock_gettime(CLOCK_REALTIME, &time);
 	timespec_add_us(&time, 500000);
 	clock_nanosleep(&time);
 	running = 0;
+
 	pthread_mutex_lock(&udp_m);
 	udp_send(&con, "GET", 4);
 	pthread_mutex_unlock(&udp_m);
+
 	pthread_join(udp_thread, NULL);
 	pthread_join(pi_thread, NULL);
-	udp_send(&con, "STOP", 5);
+
+	udp_send(&con, "STOP", 5); // Mutex not needed, only one thread from this point
 	udp_close(&con);
+
 	pthread_mutex_destroy(&udp_m);
 	pthread_mutex_destroy(&y_m);
 	return 0;
@@ -45,25 +54,28 @@ int main(void) {
 
 void *udp_listener(void * arg) {
 	char recv_buf[50];
+
 	while (running) {
 		udp_receive(&con, recv_buf, 50);
-		pthread_mutex_lock(&y_m);
-		y = atof(recv_buf + 8);
-		first_value = 1;
-		pthread_mutex_unlock(&y_m);
+		if (mesg_len > 7) { // "SIGNAL" is of length 6, bigger messages are new y values
+			pthread_mutex_lock(&y_m);
+			y = atof(recv_buf + 8);
+			pthread_mutex_unlock(&y_m);
+		}
 	}
 	pthread_exit(NULL);
 }
 
 void *pi_controller(void * arg) {
 	double error, integral = 0, reference = 1;
-	char send_buf[50];
+	char send_buf[50]; // This number could be decreased for memory efficiency
 	long period = 2000;
-	struct timespec time;
 	double Kp = 10, Ki = 800;
 	int count_send;
+	struct timespec time;
 	clock_gettime(CLOCK_REALTIME, &time);
-	while (running) {
+
+	while (running) { // Runs periodically with a period of 2000µs
 		timespec_add_us(&time, period);
 		pthread_mutex_lock(&udp_m);
 		udp_send(&con, "GET", 4);
